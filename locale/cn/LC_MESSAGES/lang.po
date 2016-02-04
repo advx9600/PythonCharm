@@ -1,0 +1,115 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2016-01-29 13:26+中国标准时间\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=gb2312\n"
+"Content-Transfer-Encoding: utf8\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+msgid "&Option"
+msgstr "选项(&O)"
+
+msgid "&Sip Config"
+msgstr "Sip配置(&S)"
+
+msgid "sip"
+msgstr "sip"
+
+msgid "call"
+msgstr "打电话"
+
+msgid "on registing"
+msgstr "正在注册中"
+
+msgid "register OK"
+msgstr "注册成功"
+
+msgid "register failed"
+msgstr "注册失败"
+
+msgid "sip config window"
+msgstr "sip配置窗口"
+
+msgid "Sip Config"
+msgstr "Sip配置"
+
+msgid "username"
+msgstr "用户名"
+
+msgid "password"
+msgstr "密码"
+
+msgid "domain"
+msgstr "域名"
+
+msgid "Err Message"
+msgstr "错误信息"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "no account"
+msgstr "无帐号"
+
+msgid "MainWindow"
+msgstr "主窗口"
+
+msgid "VideoForm.py"
+msgstr "VideoForm.exe"
+
+msgid "Exit"
+msgstr "离开"
+
+msgid "not found user"
+msgstr "未找到用户"
+
+msgid "phone"
+msgstr "电话"
+
+msgid "wait for answer"
+msgstr "正在等待对方回答"
+
+msgid "Busy here"
+msgstr "对方正忙"
+
+msgid "disconnected"
+msgstr "已断开"
+
+msgid "connected"
+msgstr "已连接"
+
+msgid "hang up"
+msgstr "挂断"
+
+msgid "Temporily Unavailable"
+msgstr "对方临时失效"
+
+msgid "Request Timeout"
+msgstr "请求超时"
+
+msgid "Calling"
+msgstr "正在呼叫"
+
+msgid "Give up call"
+msgstr "放弃呼叫"
+
+msgid "answer"
+msgstr "回复"
+# err messages
+msgid "please insert mic and reboot this application"
+msgstr "请插入麦克风,并且重新启动该程序"
+
+msgid "sip account config failed,please delete db_1.db and reboot application"
+msgstr "sip帐户配置错误,请删除 db_1.db,然后重启此程序"
