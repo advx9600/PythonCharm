@@ -60,6 +60,10 @@ class TbConfig(Base):
       return session.query(TbConfig).filter_by(name='win_w').one().val
     def SetWinW(self,val):
       session.query(TbConfig).filter_by(name='win_w').update({TbConfig.val:str(val)})
+    def GetLastCallNum(self):
+      return session.query(TbConfig).filter_by(name='last_call_num').one().val
+    def SetLastCallNum(self,val):
+      session.query(TbConfig).filter_by(name='last_call_num').update({TbConfig.val:str(val)})
 
 def InitalData():
     if (session.query(TbConfig).count() ==0):
@@ -87,6 +91,7 @@ def InitalData():
             TbConfig(name='win_y',val='100'),
             TbConfig(name='win_w',val='500'),
             TbConfig(name='win_h',val='420'),
+            TbConfig(name='last_call_num',val=''),
         ])
         session.commit()
 

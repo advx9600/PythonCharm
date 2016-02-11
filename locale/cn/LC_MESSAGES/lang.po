@@ -107,6 +107,24 @@ msgstr "放弃呼叫"
 
 msgid "answer"
 msgstr "回复"
+
+msgid "Request terminated"
+msgstr "请求终止"
+
+msgid "can't call myself"
+msgstr "无法呼叫自己"
+
+msgid "Register"
+msgstr "注册"
+
+msgid "on registing"
+msgstr "正在注册中"
+
+msgid "Internal Server Error"
+msgstr "内部服务器错误"
+
+msgid "stun server"
+msgstr "stun服务器"
 # err messages
 msgid "please insert mic and reboot this application"
 msgstr "请插入麦克风,并且重新启动该程序"

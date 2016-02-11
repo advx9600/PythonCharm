@@ -4,37 +4,33 @@ import sys
 import threading
 import gettext
 import wx
+import time
+import thread
 
 import wx
 from wx.lib.filebrowsebutton import FileBrowseButton
 
-class MyFrame(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, None, title="wx.Sound",size=(500,100))
-        p = wx.Panel(self)
+import  wx.lib.newevent
+import datetime
 
-        self.fbb = FileBrowseButton(p,labelText="Select WAV file:",fileMask="*.wav")
-        btn = wx.Button(p, -1, "Play")
-        self.Bind(wx.EVT_BUTTON, self.OnPlaySound, btn)
+def TbConfig(name,val):
+    # get="Get"+name.split("_")
+    splits=name.split("_")
+    firstUpper=""
+    for split in splits:
+        firstUpper += split.capitalize()
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.fbb, 1, wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(sizer, 0, wx.EXPAND|wx.ALL, 15)
-        p.SetSizer(border)
+    getMethod="def Get"+firstUpper+"(self):"
+    getMethodImg="  return session.query(TbConfig).filter_by(name='"+name+"').one().val"
+    print getMethod
+    print getMethodImg
 
-
-    def OnPlaySound(self, evt):
-        filename = self.fbb.GetValue()
-        self.sound = wx.Sound(filename)
-        if self.sound.IsOk():
-            self.sound.Play(wx.SOUND_SYNC)
-        else:
-            wx.MessageBox("Invalid sound file", "Error")
+    setMethod ="def Set"+firstUpper+"(self,val):"
+    setMethodImg= "  session.query(TbConfig).filter_by(name='"+name+"').update({TbConfig.val:str(val)})"
+    print setMethod
+    print setMethodImg
 
 
-app = wx.PySimpleApp()
-frm = MyFrame()
-frm.Show()
-app.MainLoop()
+for i in range(1,10):
+    time.sleep(0.1)
+    print datetime.datetime.now().second,datetime.datetime.now().microsecond/100

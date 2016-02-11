@@ -1,10 +1,13 @@
 __author__ = 'Administrator'
 import  wx
+import  wx.lib.newevent
 import wx.lib.sized_controls as sc
 import wx.aui
 import time
 import win32gui
 import win32con
+import thread
+import datetime
 import  wx.lib.layoutf  as layoutf
 
 # for python's err report
@@ -12,18 +15,24 @@ if (1>3):
     def _(msg):
         print ""
 
-
 class TaskBarIcon(wx.TaskBarIcon):
-    __registed_icon = 'img/registed_phone.png'
-    __unregisted_icon = 'img/unregisted_phone.png'
+    _registed_icon = 'img/registed_phone.png'
+    _unregisted_icon = 'img/unregisted_phone.png'
 
     #### this is the VideoForm.py's MainWindow
-    __mainWin=None
+    _mainWin=None
+
+    _isOnComingCallBlink=None
+
+    _isRegisted=False
+    _isRegisting =False
+    _isRegistingThreadOn=False
+
     def __init__(self,win):
         super(TaskBarIcon, self).__init__()
-        self.set_icon(self.__unregisted_icon)
+        self.set_icon(self._unregisted_icon)
         self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
-        self.__mainWin = win
+        self._mainWin = win
 
     def create_menu_item(self,menu, label, func):
         item = wx.MenuItem(menu, -1, label)
@@ -33,32 +42,78 @@ class TaskBarIcon(wx.TaskBarIcon):
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
-        self.create_menu_item(menu, 'Say Hello', self.on_hello)
-        menu.AppendSeparator()
+        if not self._isRegisted:
+            self.create_menu_item(menu, _('Register'), self.on_register)
+            menu.AppendSeparator()
         self.create_menu_item(menu, _('Exit'), self.on_exit)
         return menu
 
     def setRegisted(self,isTrue):
+        self._isRegisting = False
+        self._isRegisted=isTrue
         if isTrue:
-            self.set_icon(self.__registed_icon)
+            self.set_icon(self._registed_icon)
         else:
-            self.set_icon(self.__unregisted_icon)
+            self.set_icon(self._unregisted_icon)
 
-    def set_icon(self, path):
+    # def __codeCheckThread(self):
+        #     time.sleep(5)
+        #     ### notebookPanel UI set
+        #     self.call.set_callback(None)
+        #     self.on_state2()
+        # #
+        # def __codeCheck(self,code):
+        #     if (code == 0):
+        #         thread.start_new_thread(self.__codeCheckThread,())
+
+    def __on_incoming_call_thread(self):
+        while(self._isOnComingCallBlink):
+            time.sleep(0.5)
+            self.set_icon(self._unregisted_icon)
+            time.sleep(0.5)
+            self.set_icon(self._registed_icon)
+        self.set_icon(self._registed_icon)
+
+    def on_incoming_call(self,isOn):
+        self._isOnComingCallBlink = isOn
+        if isOn:
+            thread.start_new_thread(self.__on_incoming_call_thread,())
+
+    def set_icon(self, path,name=None):
+        if not name:
+            name = _("VideoForm.py")
         icon = wx.IconFromBitmap(wx.Bitmap(path))
-        self.SetIcon(icon,_("VideoForm.py"))
+        self.SetIcon(icon,name)
 
     def on_left_down(self, event):
-        self.__mainWin.Iconize(False)
-        self.__mainWin.Raise()
-        self.__mainWin.Show(True)
+        self._isOnComingCallBlink = False
+        self._mainWin.Iconize(False)
+        self._mainWin.Raise()
+        self._mainWin.Show(True)
 
-    def on_hello(self, event):
-        print 'Hello, world!'
+    def __on_registing_thread(self):
+        if  self._isRegistingThreadOn:
+            return
+
+        self._isRegistingThreadOn = True
+        while self._isRegisting:
+            for i in range(0,5):
+                time.sleep(0.3)
+                if self._isRegisting:
+                    val = _("on registing")
+                    self.set_icon("img/registing_"+str(i)+".png", _("on registing"))
+
+        self._isRegistingThreadOn = False
+
+    def on_register(self,event):
+        # self.SetIcon("",_("on registing"))
+        self._mainWin.reRegister()
+        self._isRegisting = True
+        thread.start_new_thread(self.__on_registing_thread,())
 
     def on_exit(self, event):
         wx.CallAfter(self.Destroy)
-        self.__mainWin.OnCloseWindow()
+        self._mainWin.OnCloseWindow()
 
 class ColoredPanel(wx.Window):
     def __init__(self, parent, color):
@@ -67,17 +122,19 @@ class ColoredPanel(wx.Window):
         if wx.Platform == '__WXGTK__':
             self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
-
 class MainNoteBookPanel(wx.Notebook):
-    __callWin=None
-    __soundPlayer=None
-    __call=None
+    _callWin=None
+    _soundPlayer=None
+    _call=None
+    _videoWinId=None
 
     hangUpBtn=None
     answerBtn=None
     videoPanel=None
-    videoWinId=None
-    def __init__(self, parent, id):
+
+    ### mainWindow
+    _mainWindow=None
+    def __init__(self, parent, id,mainWin):
         wx.Notebook.__init__(self, parent, id, size=(51,151), style=
                              wx.BK_DEFAULT
                              # wx.BK_TOP  |
@@ -86,6 +143,7 @@ class MainNoteBookPanel(wx.Notebook):
                              #wx.BK_RIGHT
                              # | wx.NB_MULTILINE
                              )
+        self._mainWindow = mainWin
         # self.log = log
         win = self.makeColorPanel(wx.WHITE)
         self.AddPage(win, _("MainWindow"))
@@ -95,12 +153,16 @@ class MainNoteBookPanel(wx.Notebook):
         st.SetForegroundColour(wx.BLACK)
 
     def hangup(self,e):
+        try:
+            self._call.hangup()
+        except:
+            self._mainWindow.show_err_msg()
         self.hangUpBtn.Enable(False)
-        self.__call.hangup()
+        self._mainWindow.real_on_state(603,"immediately")
 
     def answer(self,e):
         self.answerBtn.Enable(False)
-        self.__call.answer()
+        self._call.answer()
 
     def __setCallWin(self,win):
         win.SetBackgroundColour(wx.GREEN)
@@ -120,48 +182,69 @@ class MainNoteBookPanel(wx.Notebook):
         win.SetSizer(box)
 
     def call_on_state(self,call,code,state):
-        self.__call =call
-        if (code == 0 and not self.__callWin):
-            # self.__callWin=win = self.makeColorPanel(wx.WHITE)
-            self.__callWin =win= wx.Panel(self)
+        self._call =call
+        if (code == 0 and not self._callWin):
+            # self._callWin=win = self.makeColorPanel(wx.WHITE)
+            self._callWin =win= wx.Panel(self)
             self.__setCallWin(win)
             self.AddPage(win, _("Calling"))
             self.SetSelection(1)
 
-        # if not self.__callWin:
+        # if not self._callWin:
         #     return
         ### http://www.51testing.com/html/90/360490-834635.html
         #### other code process
-        elif code in (404,408,480,486,603) or (code==200 and state=="DISCONNCTD"):
+        elif code in (404,408,480,486,487,500,603) or (code==200 and state=="DISCONNCTD"):
+            text=""
             if (code == 404):
-                self.SetPageText(1,_("not found user"))
+                text=_("not found user")
             elif code == 408:
-                self.SetPageText(1,_("Request Timeout"))
+                text=_("Request Timeout")
             elif code == 480:
-                self.SetPageText(1,_("Temporily Unavailable"))
+                text=_("Temporily Unavailable")
             elif code == 486:
-                self.SetPageText(1,_("Busy here"))
+                text=_("Busy here")
+            elif code == 487:
+                text=_("Request terminated")
+            elif code == 500:
+                text=_("Internal Server Error")
             elif code == 603:
-                self.SetPageText(1,_("Give up call"))
+                text=_("Give up call")
             elif code == 200:
-                self.SetPageText(1,_("disconnected"))
+                text=_("disconnected")
+            else:
+                text=str(code)
 
-            self.__soundPlayer.Stop()
-            self.__callWin.Enable(False)
-            time.sleep(3)
-            self.DeletePage(1)
-            self.__callWin=None
+            self.SetPageText(1,text)
+            if self._soundPlayer:
+                self._soundPlayer.Stop()
+                self._soundPlayer = None
+            self._callWin.Enable(False)
+            if state == "immediately" or (code ==200 and state=="DISCONNCTD"):
+                self.__delayCloseWin(0)
+            else:
+                thread.start_new_thread(self.__delayCloseWin,(3,))
+
         elif code == 180:
             self.SetPageText(1,_("wait for answer"))
-            self.__soundPlayer = wx.Sound("sound/ringback2.wav")
-            self.__soundPlayer.Play(wx.SOUND_ASYNC | wx.SOUND_LOOP)
+            self._soundPlayer = wx.Sound("sound/ringback2.wav")
+            self._soundPlayer.Play(wx.SOUND_ASYNC | wx.SOUND_LOOP)
         elif code == 200 and state== "CONFIRMED":
             self.SetPageText(1,_("connected")+" #1")
-            self.__soundPlayer.Stop()
+            if self._soundPlayer:
+                self._soundPlayer.Stop()
+                self._soundPlayer = None
+    #### call by  thread
+    def __delayCloseWin(self,sleep=0):
+        if (sleep >0):
+            time.sleep(sleep)
+        self.DeletePage(1)
+        self._callWin=None
+        self._videoWinId = None
 
     def on_media_sate(self,vid):
         if vid:
-            self.videoWinId =vid
+            self._videoWinId =vid
             win32gui.SetParent(vid,self.videoPanel.Handle)
             x,y = self.videoPanel.GetPosition()
             w,h = self.videoPanel.GetSize()
@@ -169,10 +252,10 @@ class MainNoteBookPanel(wx.Notebook):
             self.videoPanel.Bind(wx.EVT_SIZE,self.reSizeVidePanel,self.videoPanel)
 
     def reSizeVidePanel(self,e):
-        if self.videoWinId:
+        if self._videoWinId:
             x,y = self.videoPanel.GetPosition()
             w,h = self.videoPanel.GetSize()
-            win32gui.SetWindowPos(self.videoWinId,win32con.HWND_TOP,x,y,w,h,win32con.SWP_NOACTIVATE)
+            win32gui.SetWindowPos(self._videoWinId,win32con.HWND_TOP,x,y,w,h,win32con.SWP_NOACTIVATE)
 
     def __setComingCallWin(self,win):
         win.SetBackgroundColour(wx.GREEN)
@@ -189,18 +272,17 @@ class MainNoteBookPanel(wx.Notebook):
         self.answerBtn = btn= wx.Button(win,-1,_("answer"))
         self.Bind(wx.EVT_BUTTON, self.answer, btn)
         box.Add(btn,0,wx.ALIGN_LEFT)
-
         win.SetSizer(box)
-        pass
 
-    def  on_incoming_call(self,call):
-        if  not self.__callWin:
-            self.__callWin=win= wx.Panel(self)
-            # self.__setComingCallWin(win)
-            self.AddPage(win, _("Calling"))
-            self.SetSelection(1)
+    def on_incoming_call(self,call):
+        self._call = call
+        self._soundPlayer = wx.Sound("sound/oldphone-mono.wav")
+        self._soundPlayer.Play(wx.SOUND_ASYNC | wx.SOUND_LOOP)
 
-
+        self._callWin=win= wx.Panel(self)
+        self.__setComingCallWin(win)
+        self.AddPage(win, _("Calling"))
+        self.SetSelection(1)
         # if (code == )
         # st.SetBackgroundColour(wx.BLUE)
 
@@ -279,6 +361,7 @@ class SipConfigDialog(sc.SizedDialog):
     userText=None
     pwdText = None
     domainText = None
+    stunText = None
 
     def __init__(self, parent, id,title):
         sc.SizedDialog.__init__(self, None, -1, title,
@@ -302,6 +385,10 @@ class SipConfigDialog(sc.SizedDialog):
         self.domainText=text = wx.TextCtrl(pane, -1, "")
         text.SetSizerProps(expand=True)
 
+        # row 4
+        wx.StaticText(pane, -1,  _("stun server"))
+        self.stunText=text = wx.TextCtrl(pane, -1, "")
+        text.SetSizerProps(expand=True)
         # add dialog buttons
         self.SetButtonSizer(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL))
 
