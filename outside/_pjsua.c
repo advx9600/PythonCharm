@@ -26,6 +26,10 @@
 
 /* LIB BASE */
 
+#pragma comment(lib, "WS2_32") 
+//#pragma comment(lib, "wsock32") 
+#pragma comment(lib, "ole32") 
+#pragma comment(lib, "dsound")
 static PyObject* g_obj_log_cb;
 static long g_thread_id;
 static struct py_thread_desc
