@@ -1437,6 +1437,8 @@ static PyObject *py_pjsua_acc_add(PyObject *pSelf, PyObject *pArgs)
 	pjsua_acc_config_default(&cfg);
         ac = (PyObj_pjsua_acc_config *)pCfg;
         PyObj_pjsua_acc_config_export(&cfg, ac);
+		cfg.vid_in_auto_show = PJ_TRUE;
+		cfg.vid_out_auto_transmit = PJ_TRUE;
         status = pjsua_acc_add(&cfg, is_default, &acc_id);
     } else {
         status = PJ_EINVAL;
