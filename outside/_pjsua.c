@@ -3360,7 +3360,36 @@ static PyObject *py_pjsua_call_answer(PyObject *pSelf, PyObject *pArgs)
 
     return Py_BuildValue("i", status);
 }
+/*
+* get Video winId
+*/
+static PyObject *py_pjsua_call_vid_win_id(PyObject *pSelf, PyObject *pArgs)
+{    
+    int status ;
+    int call_id;
+    PyObject * omdObj;
 
+    PJ_UNUSED_ARG(pSelf);
+
+    if (!PyArg_ParseTuple(pArgs, "i", &call_id)) {
+        return NULL;
+    }
+
+	int i;
+	pjsua_call_info ci;
+	pjsua_call_get_info(call_id, &ci);
+	status = 0;
+	for (i = 0; i < ci.media_cnt; ++i) {
+		if ((ci.media[i].type == PJMEDIA_TYPE_VIDEO) &&
+			(ci.media[i].dir & PJMEDIA_DIR_DECODING))
+		{
+			pjsua_vid_win_info wi;
+			pjsua_vid_win_get_info(ci.media[i].stream.vid.win_in, &wi);
+			status = (int)wi.hwnd.info.win.hwnd;			
+		}
+	}
+    return Py_BuildValue("i", status);
+}
 /*
  * py_pjsua_call_hangup
  */

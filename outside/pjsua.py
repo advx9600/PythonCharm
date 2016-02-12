@@ -1644,6 +1644,9 @@ class Call:
                                    Lib._create_msg_data(hdr_list))
         self._lib()._err_check("answer()", self, err)
 
+    def vid_win_id(self):
+        lck = self._lib().auto_lock()
+        return  _pjsua.vid_win_id(self._id)
     def hangup(self, code=603, reason="", hdr_list=None):
         """
         Terminate the call.
