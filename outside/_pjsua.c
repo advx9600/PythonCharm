@@ -915,6 +915,7 @@ static PyObject *py_pjsua_init(PyObject *pSelf, PyObject *pArgs)
 	PyObj_pjsua_config *obj_ua_cfg = (PyObj_pjsua_config*)o_ua_cfg;
 
 	PyObj_pjsua_config_export(&cfg_ua, obj_ua_cfg);
+	
 
 	Py_XDECREF(g_obj_callback);
     	g_obj_callback = obj_ua_cfg->cb;
@@ -968,7 +969,7 @@ static PyObject *py_pjsua_init(PyObject *pSelf, PyObject *pArgs)
     } else {
         p_cfg_media = NULL;
     }
-
+	
     status = pjsua_init(p_cfg_ua, p_cfg_log, p_cfg_media);
 
     return Py_BuildValue("i", status);

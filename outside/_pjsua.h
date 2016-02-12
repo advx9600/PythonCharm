@@ -824,6 +824,7 @@ typedef struct
     PyListObject	 *nameserver;
     PyObj_pjsua_callback *cb;
     PyObject		 *user_agent;
+	PyListObject	 *stun_srv;
 } PyObj_pjsua_config;
 
 
@@ -835,6 +836,7 @@ static void PyObj_pjsua_config_delete(PyObj_pjsua_config* self)
     Py_XDECREF(self->nameserver);
     Py_XDECREF(self->cb);
     Py_XDECREF(self->user_agent);
+	Py_XDECREF(self->stun_srv);
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -865,6 +867,13 @@ static void PyObj_pjsua_config_import(PyObj_pjsua_config *obj,
     }
     Py_XDECREF(obj->user_agent);
     obj->user_agent	= PyString_FromPJ(&cfg->user_agent);
+	Py_XDECREF(obj->stun_srv);
+	obj->stun_srv = (PyListObject *)PyList_New(0);
+	for (i = 0; i<cfg->stun_srv_cnt; ++i) {
+		PyObject * str;
+		str = PyString_FromPJ(&cfg->stun_srv[i]);
+		PyList_Append((PyObject *)obj->stun_srv, str);
+	}
 }
 
 
@@ -891,7 +900,13 @@ static void PyObj_pjsua_config_export(pjsua_config *cfg,
     cfg->stun_domain	= PyString_ToPJ(obj->stun_domain);
     cfg->stun_host	= PyString_ToPJ(obj->stun_host);
     cfg->user_agent	= PyString_ToPJ(obj->user_agent);
-
+	cfg->stun_srv_cnt = PyList_Size((PyObject*)obj->stun_srv);
+	if (cfg->stun_srv_cnt > PJ_ARRAY_SIZE(cfg->stun_srv))
+		cfg->stun_srv_cnt = PJ_ARRAY_SIZE(cfg->stun_srv);
+	for (i = 0; i < cfg->stun_srv_cnt; i++) {
+		PyObject *item = PyList_GetItem((PyObject *)obj->stun_srv, i);
+		cfg->stun_srv[i] = PyString_ToPJ(item);
+	}
 }
 
 
@@ -960,6 +975,11 @@ static PyMemberDef PyObj_pjsua_config_members[] =
     	offsetof(PyObj_pjsua_config, nameserver), 0,
     	"IP address of the nameserver."
     },
+	{
+		"stun_srv", T_OBJECT_EX,
+		offsetof(PyObj_pjsua_config, stun_srv), 0,
+		"IP address  or domain of the STUN server."
+	},
     {
     	"cb", T_OBJECT_EX, offsetof(PyObj_pjsua_config, cb), 0,
     	"Application callback."

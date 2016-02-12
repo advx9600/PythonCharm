@@ -260,6 +260,7 @@ class UAConfig:
     stun_domain = ""
     stun_host = ""
     user_agent = "pjsip python"
+    stun_srv = []
     
     def _cvt_from_pjsua(self, cfg):
         self.max_calls = cfg.max_calls
@@ -268,6 +269,7 @@ class UAConfig:
         self.stun_domain = cfg.stun_domain
         self.stun_host = cfg.stun_host
         self.user_agent = cfg.user_agent
+        self.stun_srv = cfg.stun_srv
 
     def _cvt_to_pjsua(self):
         cfg = _pjsua.config_default()
@@ -277,6 +279,7 @@ class UAConfig:
         cfg.stun_domain = self.stun_domain
         cfg.stun_host = self.stun_host
         cfg.user_agent = self.user_agent
+        cfg.stun_srv = self.stun_srv
         return cfg
 
 
