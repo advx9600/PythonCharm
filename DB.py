@@ -26,10 +26,16 @@ class TbUser(Base):
 
     def addUser(self,user):
         session.add(user)
-        session.commit()
 
     def getFirstUser(self):
         return session.query(TbUser).first()
+
+    # def startSession(self):
+    #     session.begin(True)
+    def commitSession(self):
+        session.commit()
+    def rollbackSession(self):
+        session.rollback()
 
 class TbConfig(Base):
     __tablename__ = 'tb_config'
@@ -40,8 +46,10 @@ class TbConfig(Base):
     def __repr__(self):
         return "<Config(name='%s',val='%s')>" % (self.name,self.val)
 
-    def sessionCommit(self):
+    def commitSession(self):
         session.commit()
+    def rollbackSession(self):
+        session.rollback()
 
     ### those method are auto generated
     def GetWinX(self):
@@ -64,9 +72,30 @@ class TbConfig(Base):
       return session.query(TbConfig).filter_by(name='last_call_num').one().val
     def SetLastCallNum(self,val):
       session.query(TbConfig).filter_by(name='last_call_num').update({TbConfig.val:str(val)})
+    def GetIsUseIce(self):
+      return session.query(TbConfig).filter_by(name='is_use_ice').one().val
+    def SetIsUseIce(self,val):
+      session.query(TbConfig).filter_by(name='is_use_ice').update({TbConfig.val:str(val)})
+    def GetIsUseStun(self):
+      return session.query(TbConfig).filter_by(name='is_use_stun').one().val
+    def SetIsUseStun(self,val):
+      session.query(TbConfig).filter_by(name='is_use_stun').update({TbConfig.val:str(val)})
+    def GetIsUseTurn(self):
+      return session.query(TbConfig).filter_by(name='is_use_turn').one().val
+    def SetIsUseTurn(self,val):
+      session.query(TbConfig).filter_by(name='is_use_turn').update({TbConfig.val:str(val)})
+    def GetStunServer(self):
+      return session.query(TbConfig).filter_by(name='stun_server').one().val
+    def SetStunServer(self,val):
+      session.query(TbConfig).filter_by(name='stun_server').update({TbConfig.val:str(val)})
+    def GetTurnServer(self):
+      return session.query(TbConfig).filter_by(name='turn_server').one().val
+    def SetTurnServer(self,val):
+      session.query(TbConfig).filter_by(name='turn_server').update({TbConfig.val:str(val)})
 
 def InitalData():
     if (session.query(TbConfig).count() ==0):
+        session.begin(True)
         session.add_all([
             #### from this use script auto genneric TbConfig's get and set method,like below
 
@@ -92,6 +121,12 @@ def InitalData():
             TbConfig(name='win_w',val='500'),
             TbConfig(name='win_h',val='420'),
             TbConfig(name='last_call_num',val=''),
+
+            TbConfig(name='is_use_ice',val='0'),
+            TbConfig(name='is_use_stun',val='0'),
+            TbConfig(name='is_use_turn',val='0'),
+            TbConfig(name='stun_server',val='stun.pjsip.org '),
+            TbConfig(name='turn_server',val='advx9900.xicp.net'),
         ])
         session.commit()
 

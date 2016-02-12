@@ -65,3 +65,6 @@ target/
 *.lib
 *.dll
 *.db
+*.pk
+Test1.py
+Test2.py

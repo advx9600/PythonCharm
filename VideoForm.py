@@ -14,6 +14,8 @@ import MyUtil
 import  wx.lib.layoutf  as layoutf
 import DB
 import datetime
+from pjsua import UAConfig
+from pjsua import MediaConfig
 
 from DB import TbUser
 from DB import TbConfig
@@ -27,7 +29,7 @@ if (1>3):
     def _(msg):
         pass
 
-lib = pj.Lib()
+lib =None
 
 class MainWindow(wx.Frame):
     acc=None
@@ -109,8 +111,11 @@ class MainWindow(wx.Frame):
           # option menu
         optionmenu= wx.Menu()
 
-        sipConfigMenuItem = optionmenu.Append(0,_("&Sip Config"),"")
+        sipConfigMenuItem = optionmenu.Append(101,_("&Sip Config"),"")
+        natTravelMenuItem = optionmenu.Append(102,_("&Nat Traversal"),"")
+
         self.Bind(wx.EVT_MENU, self.doSipConfigMenuItem, sipConfigMenuItem)
+        self.Bind(wx.EVT_MENU, self.doNatTravelConfig, natTravelMenuItem)
 
         menuBar = wx.MenuBar()
         menuBar.Append(optionmenu,(_("&Option")))
@@ -147,6 +152,49 @@ class MainWindow(wx.Frame):
         ### system tray
         self.taskBar=MyWidget.TaskBarIcon(self)
 
+    def __startSipLib(self):
+        isSucess = True
+        global lib
+        if lib:
+            self.__stopSipLib()
+
+        lib =  pj.Lib()
+
+        try:
+            dao = self.configDao;
+            mediaConfig=MediaConfig()
+            mediaConfig.enable_ice = MyUtil.db_str2bool(dao.GetIsUseIce())
+            mediaConfig.enable_turn =MyUtil.db_str2bool(dao.GetIsUseTurn())
+            mediaConfig.turn_server =dao.GetTurnServer()
+
+            uaConfig=UAConfig()
+            if (MyUtil.db_str2bool(dao.GetIsUseStun())):
+                uaConfig.stun_domain = dao.GetStunServer()
+                uaConfig.stun_host = dao.GetStunServer()
+
+            lib.init(ua_cfg = uaConfig,log_cfg = pj.LogConfig(level=1, callback=self.log_cb), media_cfg=mediaConfig)
+            lib.create_transport(pj.TransportType.UDP, pj.TransportConfig(0))
+            lib.start()
+        except:
+            isSucess=False
+            self.show_err_msg()
+
+        self.reRegister()
+
+        return isSucess
+
+    def __stopSipLib(self):
+        global lib
+        if self.call:
+            self.call.attach_to_id(-1)
+            self.call=None
+        if self.acc:
+            self.acc.delete()
+            self.acc =None
+        if lib:
+            lib.destroy()
+            lib = None
+
     def __init__(self, parent, title):
         ## dao init
         self.userDao = TbUser()
@@ -156,15 +204,12 @@ class MainWindow(wx.Frame):
         self.__setUi()
 
         ### lib init
-        lib.init(log_cfg = pj.LogConfig(level=1, callback=self.log_cb))
-        lib.create_transport(pj.TransportType.UDP, pj.TransportConfig(0))
-        lib.start()
+        self.__startSipLib()
 
         if (self.userDao.getCount() == 0):
-            # self.userDao.addUser(TbUser(name="101", pwd="101", domain="192.168.0.175"))
             self.doSipConfigMenuItem(None)
         else:
-            self.__reSetAccount()
+            self.reRegister()
 
         self.Show(True)
         self._previousSize = self.GetSize()
@@ -176,7 +221,7 @@ class MainWindow(wx.Frame):
         event.Skip()
 
     def onCallBtnClick(self,e):
-        if not self.call:
+        if not self.call and self.acc:
             user = self.callUserText.GetValue().strip()
             uri="sip:"+user+"@"+self.tbUser.domain
             if self.tbUser.name == user:
@@ -188,30 +233,9 @@ class MainWindow(wx.Frame):
                 ### setup notebook's ui
                 self.notebookPanel.call_on_state(self.call,0,None)
                 self.configDao.SetLastCallNum(user)
-                self.configDao.sessionCommit()
+                self.configDao.commitSession()
             except :
                 self.show_err_msg()
-
-    def reRegister(self):
-        self.__reSetAccount()
-
-    def __reSetAccount(self):
-        if self.acc:
-            self.acc.delete()
-            self.acc =None
-
-        self.tbUser= self.userDao.getFirstUser()
-        account = pj.AccountConfig(str(self.tbUser.domain), str(self.tbUser.name), str(self.tbUser.pwd))
-        # account.reg_timeout =30
-        try:
-            self.acc = lib.create_account(account)
-        except:
-            self.show_err_msg()
-
-        acc_cb = MyUtil.MyAccountCallback(self.acc,self)
-        self.acc.set_callback(acc_cb)
-        acc_cb.wait()
-        self.SetTitle(_("on registing")+"...")
 
     def doSipConfigMenuItem(self,e):
         dlg = MyWidget.SipConfigDialog(self, -1, _("sip config window"))
@@ -233,11 +257,65 @@ class MainWindow(wx.Frame):
 
             self.userDao.addUser(self.tbUser)
 
-            self.__reSetAccount()
+            if self.reRegister():
+                self.userDao.commitSession()
+            else:
+                self.userDao.rollbackSession()
 
         dlg.Destroy()
         # self.acc.info().media_state
         # win32gui.SetParent(self.call.vid_win_id(),self.Handle)
+
+    def doNatTravelConfig(self,e):
+        dlg = MyWidget.NetTraversalConfigDialog(self, -1, _("nat traversal config"))
+        dao = self.configDao
+        dlg.setValue(dao.GetIsUseIce(),dao.GetIsUseStun(),dao.GetStunServer(),dao.GetIsUseTurn(),dao.GetTurnServer())
+
+        # this does not return until the dialog is closed.
+        dlg.CenterOnScreen()
+        val = dlg.ShowModal()
+
+        if val == wx.ID_OK:
+            dao.SetIsUseIce(MyUtil.db_bool2str(dlg.useIce.GetValue()))
+            dao.SetIsUseStun(MyUtil.db_bool2str(dlg.useStun.GetValue()))
+            dao.SetIsUseTurn(MyUtil.db_bool2str(dlg.useTurn.GetValue()))
+            dao.SetStunServer(dlg.stunServer.GetValue())
+            dao.SetTurnServer(dlg.turnServer.GetValue())
+
+            if self.__startSipLib():
+                dao.commitSession()
+            else:
+                dao.rollbackSession()
+
+        dlg.Destroy()
+
+    def reRegister(self):
+        return self.__reSetAccount()
+
+    def __reSetAccount(self):
+        isSucess=True
+
+        if self.acc:
+            self.acc.delete()
+            self.acc =None
+
+        if self.userDao.getCount() > 0:
+            self.tbUser= self.userDao.getFirstUser()
+            account = pj.AccountConfig(str(self.tbUser.domain), str(self.tbUser.name), str(self.tbUser.pwd))
+            # account.reg_timeout =30
+            try:
+                self.acc = lib.create_account(account)
+                acc_cb = MyUtil.MyAccountCallback(self.acc,self)
+                self.acc.set_callback(acc_cb)
+                acc_cb.wait()
+                self.SetTitle(_("on registing")+"...")
+            except:
+                isSucess=False
+                self.show_err_msg()
+        # else:
+        #     self.SetTitle(_("no account"))
+
+        return isSucess
 
     def __OnCloseWindow(self,event):
         self.__saveWinData()
@@ -246,11 +324,7 @@ class MainWindow(wx.Frame):
 
     def OnCloseWindow(self):
         self.__saveWinData()
-
-        if self.call:
-            self.call.attach_to_id(-1)
-            self.acc.delete()
-        lib.destroy()
+        self.__stopSipLib()
         self.Destroy()
 
     def __saveWinData(self):
@@ -269,9 +343,7 @@ class MainWindow(wx.Frame):
             isNeedUpdate = True
 
         if (isNeedUpdate):
-            self.configDao.sessionCommit()
-
-        pass
+            self.configDao.commitSession()
 
     def log_cb(self,level, str, len):
         if (level==1):

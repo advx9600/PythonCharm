@@ -14,12 +14,16 @@ msgstr ""
 "Content-Transfer-Encoding: utf8\n"
 "Generated-By: pygettext.py 1.5\n"
 
-
+#### menu bar
 msgid "&Option"
 msgstr "选项(&O)"
 
 msgid "&Sip Config"
 msgstr "Sip配置(&S)"
+
+msgid "&Nat Traversal"
+msgstr "Net穿越(&N)"
+
 
 msgid "sip"
 msgstr "sip"
@@ -123,11 +127,27 @@ msgstr "正在注册中"
 msgid "Internal Server Error"
 msgstr "内部服务器错误"
 
+msgid "nat traversal config"
+msgstr "nat穿越配置"
+
+msgid "Enable Ice"
+msgstr "Ice使能"
+
+msgid "Enable Stun"
+msgstr "Stun使能"
+
+msgid "Enable Turn"
+msgstr "Turn使能"
+
 msgid "stun server"
 msgstr "stun服务器"
+
+msgid "turn server"
+msgstr "turn服务器"
+
 # err messages
 msgid "please insert mic and reboot this application"
 msgstr "请插入麦克风,并且重新启动该程序"
 
-msgid "sip account config failed,please delete db_1.db and reboot application"
-msgstr "sip帐户配置错误,请删除 db_1.db,然后重启此程序"
+msgid "sip account config failed"
+msgstr "sip帐户配置错误"

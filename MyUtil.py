@@ -9,17 +9,26 @@ if (1>3):
     def _(msg):
         pass
 
+def db_str2bool(val):
+    if val in ("0","false","False","No","no"):
+        return False
+    return True
+
+def db_bool2str(val):
+    if str(val) in ("1","True","true","Yes","yes"):
+        return "1"
+    return "0"
+
 def ProcessErrMsg(msg):
     msgAdd=""
     if (msg):
         if "[status=420006]" in str(msg):
             msgAdd=_("please insert mic and reboot this application")+"\n"
         elif "[status=171039]" in str(msg):
-            msgAdd=_("sip account config failed,please delete db_1.db and reboot application")+"\n"
+            msgAdd=_("sip account config failed")+"\n"
 
     msgAdd += str(msg)
     return  msgAdd
-
 
 myRegStateEvent = wx.NewEventType()
 EVT_ON_REG_STATE = wx.PyEventBinder(myRegStateEvent, 1)

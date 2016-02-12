@@ -20,3 +20,6 @@ msgstr "&Option"
 
 msgid "&Sip Config"
 msgstr "&Sip Config"
+
+msgid "&Nat Traversal"
+msgstr "Net Traversal"

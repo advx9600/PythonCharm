@@ -7,6 +7,7 @@ import time
 import win32gui
 import win32con
 import thread
+import  MyUtil
 import datetime
 import  wx.lib.layoutf  as layoutf
 
@@ -361,7 +362,6 @@ class SipConfigDialog(sc.SizedDialog):
     userText=None
     pwdText = None
     domainText = None
-    stunText = None
 
     def __init__(self, parent, id,title):
         sc.SizedDialog.__init__(self, None, -1, title,
@@ -385,10 +385,6 @@ class SipConfigDialog(sc.SizedDialog):
         self.domainText=text = wx.TextCtrl(pane, -1, "")
         text.SetSizerProps(expand=True)
 
-        # row 4
-        wx.StaticText(pane, -1,  _("stun server"))
-        self.stunText=text = wx.TextCtrl(pane, -1, "")
-        text.SetSizerProps(expand=True)
         # add dialog buttons
         self.SetButtonSizer(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL))
 
@@ -402,88 +398,50 @@ class SipConfigDialog(sc.SizedDialog):
         self.pwdText.SetValue(pwd)
         self.domainText.SetValue(domain)
 
-class SipConfigDialogOld(wx.Dialog):
-    userText=None
-    pwdText = None
-    domainText = None
-    def __init__(
-            self, parent, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition,
-            style=wx.DEFAULT_DIALOG_STYLE,
-            ):
+class NetTraversalConfigDialog(sc.SizedDialog):
+    useIce=False
+    useStun = False
+    stunServer = None
+    useTurn = False
+    turnServer = None
 
-        # Instead of calling wx.Dialog.__init__ we precreate the dialog
-        # so we can set an extra style that must be set before
-        # creation, and then we create the GUI object using the Create
-        # method.
-        pre = wx.PreDialog()
-        pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
-        pre.Create(parent, ID, title, pos, size, style)
+    def __init__(self, parent, id,title):
+        sc.SizedDialog.__init__(self, None, -1, title,
+                        style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
-        # This next step is the most important, it turns this Python
-        # object into the real wrapper of the dialog (instead of pre)
-        # as far as the wxPython extension is concerned.
-        self.PostCreate(pre)
+        pane = self.GetContentsPane()
+        pane.SetSizerType("form")
 
-        # Now continue with the normal construction of the dialog
-        # contents
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        # row 1
+        wx.StaticText(pane, -1,  _("Enable Ice"))
+        self.useIce = checkbox = wx.CheckBox(pane,-1,"")
+        checkbox.SetSizerProps(expand=True)
 
-        label = wx.StaticText(self, -1, _("Sip Config"))
-        sizer.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        #row 2
+        self.useStun = checkbox = wx.CheckBox(pane,-1,_("stun server"))
+        self.stunServer=text = wx.TextCtrl(pane, -1, "", size=(200,-1))
+        text.SetSizerProps(expand=True)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
+        # row 3
+        self.useTurn = checkbox = wx.CheckBox(pane,-1,_("turn server"))
+        self.turnServer=text = wx.TextCtrl(pane, -1, "")
+        text.SetSizerProps(expand=True)
 
-        label = wx.StaticText(self, -1, _("username")+":")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        # button
+        self.SetButtonSizer(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL))
 
-        self.userText=text = wx.TextCtrl(self, -1, "", size=(200,-1))
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+        # a little trick to make sure that you can't resize the dialog to
+        # less screen space than the controls need
+        self.Fit()
+        self.SetMinSize(self.GetSize())
 
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+    def setValue(self,isUseIce,isUseStun,stunServer,isUseTurn,turnServer):
+        if MyUtil.db_str2bool(isUseIce):
+            self.useIce.SetValue(True)
+        if MyUtil.db_str2bool(isUseStun):
+            self.useStun.SetValue(True)
+        if MyUtil.db_str2bool(isUseTurn):
+            self.useTurn.SetValue(True)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        label = wx.StaticText(self, -1, _("password")+":")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        self.pwdText=text = wx.TextCtrl(self, -1, "", size=(20,-1))
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        label = wx.StaticText(self, -1, _("domain")+":")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALIGN_RIGHT | wx.ALL, 5)
-
-        self.domainText=text = wx.TextCtrl(self, -1, "", size=(10,-1))
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL| wx.ALL, 5)
-
-        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-
-        btnsizer = wx.StdDialogButtonSizer()
-
-        if wx.Platform != "__WXMSW__":
-            btn = wx.ContextHelpButton(self)
-            btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btnsizer.AddButton(btn)
-        btnsizer.Realize()
-
-        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL| wx.ALIGN_CENTER_HORIZONTAL| wx.ALL, 5)
-
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-
-    def setValue(self,domain,username,pwd):
-        self.userText.SetValue(username)
-        self.pwdText.SetValue(pwd)
-        self.domainText.SetValue(domain)
+        self.stunServer.SetValue(stunServer)
+        self.turnServer.SetValue(turnServer)
