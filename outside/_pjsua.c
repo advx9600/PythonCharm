@@ -30,6 +30,7 @@
 //#pragma comment(lib, "wsock32") 
 #pragma comment(lib, "ole32") 
 #pragma comment(lib, "dsound")
+
 static PyObject* g_obj_log_cb;
 static long g_thread_id;
 static struct py_thread_desc
@@ -1561,7 +1562,7 @@ static PyObject *py_pjsua_acc_modify(PyObject *pSelf, PyObject *pArgs)
         ac = (PyObj_pjsua_acc_config*)pCfg;
         PyObj_pjsua_acc_config_export(&cfg, ac);
 
-        status = pjsua_acc_modify(acc_id, &cfg);
+        status = pjsua_acc_modify(acc_id, &cfg);		
     } else {
         status = PJ_EINVAL;
     }
@@ -4399,6 +4400,10 @@ static PyMethodDef py_pjsua_methods[] =
         "call_answer", py_pjsua_call_answer, METH_VARARGS,
         pjsua_call_answer_doc
     },
+	{
+		"vid_win_id", py_pjsua_call_vid_win_id, METH_VARARGS,
+		"nothing get video win id"
+	},
     {
         "call_hangup", py_pjsua_call_hangup, METH_VARARGS,
         pjsua_call_hangup_doc

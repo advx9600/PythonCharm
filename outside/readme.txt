@@ -1,0 +1,2 @@
+D:\Workspace>mklink /H PythonCharm\outside\pjsua.py VisualStudio\pjsip_visualstudio\pjsip-apps\src\python\pjsua.py
+D:\Workspace>mklink /H PythonCharm\outside\_pjsua.c VisualStudio\pjsip_visualstudio\pjsip-apps\src\python\_pjsua.c

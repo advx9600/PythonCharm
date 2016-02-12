@@ -1647,6 +1647,7 @@ class Call:
     def vid_win_id(self):
         lck = self._lib().auto_lock()
         return  _pjsua.vid_win_id(self._id)
+
     def hangup(self, code=603, reason="", hdr_list=None):
         """
         Terminate the call.
