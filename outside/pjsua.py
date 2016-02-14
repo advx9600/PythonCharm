@@ -1263,7 +1263,7 @@ class Account:
         err = _pjsua.acc_set_transport(self._id, transport._id)
         self._lib()._err_check("set_transport()", self, err)
 
-    def make_call(self, dst_uri, cb=None, hdr_list=None):
+    def make_call(self, dst_uri, cb=None, vid_cnt=1,hdr_list=None):
         """Make outgoing call to the specified URI.
 
         Keyword arguments:
@@ -1280,7 +1280,7 @@ class Account:
         """
         lck = self._lib().auto_lock()
         call = Call(self._lib(), -1, cb)
-        err, cid = _pjsua.call_make_call(self._id, dst_uri, 0, 
+        err, cid = _pjsua.call_make_call(self._id, dst_uri,vid_cnt, 0,
                                          call, Lib._create_msg_data(hdr_list))
         self._lib()._err_check("make_call()", self, err)
         call.attach_to_id(cid)

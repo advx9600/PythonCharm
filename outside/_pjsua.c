@@ -3119,15 +3119,13 @@ static PyObject *py_pjsua_call_make_call(PyObject *pSelf, PyObject *pArgs)
     int call_id;
     pj_pool_t *pool = NULL;
 
-    PJ_UNUSED_ARG(pSelf);
-
+    PJ_UNUSED_ARG(pSelf);	
 	pjsua_call_setting_default(&option);
-	if (!PyArg_ParseTuple(pArgs, "iOIOO", &acc_id, &pDstUri, &option.flag, 
+	if (!PyArg_ParseTuple(pArgs, "iOIIOO", &acc_id, &pDstUri, &option.vid_cnt,&option.flag,
 			  &pUserData, &pMsgData))
-    {
+    {		
         return NULL;
-    }
-	
+    }	
     dst_uri = PyString_ToPJ(pDstUri);
     pjsua_msg_data_init(&msg_data);
 
