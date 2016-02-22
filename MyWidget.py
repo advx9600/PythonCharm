@@ -16,6 +16,41 @@ if (1>3):
     def _(msg):
         print ""
 
+class StartUpProgressBar():
+    count=0
+    title=""
+    dlg=None
+    isFinished=False
+    def __init__(self):
+        self.title =_("Start progress")
+        self.dlg=wx.ProgressDialog(self.title,
+                               "",
+                               maximum = 100,
+                               parent=None,
+                               style = 0
+                                | wx.PD_APP_MODAL
+                                # | wx.PD_CAN_ABORT
+                                #| wx.PD_CAN_SKIP
+                                #| wx.PD_ELAPSED_TIME
+                                # | wx.PD_ESTIMATED_TIME
+                                # | wx.PD_REMAINING_TIME
+                                | wx.PD_AUTO_HIDE
+                                )
+    def update(self,num,title=None):
+        if not self.isFinished:
+            if num > 99:
+                self.isFinished = True
+            if num > 100:
+                num = 100
+            if title:
+                self.title = title
+            self.count = num
+            self.dlg.Update(num,self.title)
+
+
+    def Destroy(self):
+        self.dlg.Destroy()
+
 class TaskBarIcon(wx.TaskBarIcon):
     _registed_icon = 'img/registed_phone.png'
     _unregisted_icon = 'img/unregisted_phone.png'
@@ -101,16 +136,16 @@ class TaskBarIcon(wx.TaskBarIcon):
             for i in range(0,5):
                 time.sleep(0.3)
                 if self._isRegisting:
-                    val = _("on registing")
                     self.set_icon("img/registing_"+str(i)+".png", _("on registing"))
 
         self._isRegistingThreadOn = False
 
-    def on_register(self,event):
-        # self.SetIcon("",_("on registing"))
-        self._mainWin.reRegister()
+    def startRegistingBlink(self):
         self._isRegisting = True
         thread.start_new_thread(self.__on_registing_thread,())
+
+    def on_register(self,event):
+        self._mainWin.reRegister()
 
     def on_exit(self, event):
         wx.CallAfter(self.Destroy)
@@ -225,7 +260,6 @@ class MainNoteBookPanel(wx.Notebook):
                 self.__delayCloseWin(0)
             else:
                 thread.start_new_thread(self.__delayCloseWin,(3,))
-
         elif code == 180:
             self.SetPageText(1,_("wait for answer"))
             self._soundPlayer = wx.Sound("sound/ringback2.wav")
@@ -284,48 +318,7 @@ class MainNoteBookPanel(wx.Notebook):
         self.__setComingCallWin(win)
         self.AddPage(win, _("Calling"))
         self.SetSelection(1)
-        # if (code == )
-        # st.SetBackgroundColour(wx.BLUE)
 
-        # # Show how to put an image on one of the notebook tabs,
-        # # first make the image list:
-        # il = wx.ImageList(16, 16)
-        # idx1 = il.Add(images.Smiles.GetBitmap())
-        # self.AssignImageList(il)
-        #
-        # # now put an image on the first tab we just created:
-        # self.SetPageImage(0, idx1)
-        #
-        #
-        # win = self.makeColorPanel(wx.RED)
-        # self.AddPage(win, "Red")
-        # self.SetSelection(1)
-        #
-        # win = ScrolledWindow.MyCanvas(self)
-        # self.AddPage(win, 'ScrolledWindow')
-        #
-        # win = self.makeColorPanel(wx.GREEN)
-        # self.AddPage(win, "Green")
-        #
-        # win = GridSimple.SimpleGrid(self, log)
-        # self.AddPage(win, "Grid")
-        #
-        # win = ListCtrl.TestListCtrlPanel(self, log)
-        # self.AddPage(win, 'List')
-        #
-        # win = self.makeColorPanel(wx.CYAN)
-        # self.AddPage(win, "Cyan")
-        #
-        # win = self.makeColorPanel(wx.NamedColour('Midnight Blue'))
-        # self.AddPage(win, "Midnight Blue")
-        #
-        # win = self.makeColorPanel(wx.NamedColour('Indian Red'))
-        # self.AddPage(win, "Indian Red")
-
-    #     self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-    #     self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
-    #
-    #
     def makeColorPanel(self, color):
         p = wx.Panel(self, -1)
         win = ColoredPanel(p, color)
@@ -434,6 +427,9 @@ class NetTraversalConfigDialog(sc.SizedDialog):
         # less screen space than the controls need
         self.Fit()
         self.SetMinSize(self.GetSize())
+
+        self.useTurn.Enabled=False
+        self.turnServer.Enabled=False
 
     def setValue(self,isUseIce,isUseStun,stunServer,isUseTurn,turnServer):
         if MyUtil.db_str2bool(isUseIce):

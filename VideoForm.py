@@ -1,19 +1,12 @@
 # -*- coding: gbk -*-
 __author__ = 'Administrator'
 
-import sys
 import  wx
 import pjsua as pj
-import threading
-import thread
-import time
-import win32gui
 import gettext
 import  MyWidget
 import MyUtil
 import  wx.lib.layoutf  as layoutf
-import DB
-import datetime
 from pjsua import UAConfig
 from pjsua import MediaConfig
 
@@ -40,13 +33,14 @@ class MainWindow(wx.Frame):
     # tbConfig=None
     configDao=None
 
-    callBtn=None
+    voiceCallBtn=None
+    videoCallBtn=None
     callUserText=None
 
     notebookPanel=None
     taskBar=None
 
-    lastErrorInfo=None
+    lastErrorInfo=""
 
     _previousSize=None
     _previousPos=None
@@ -67,8 +61,8 @@ class MainWindow(wx.Frame):
                 return
 
         call = evt.GetValue()
-        call.answer(180)  ### this must add before set_callback
-        call.set_callback(MyUtil.MyCallCallback(self))
+        call.answer(180)
+        call.set_callback(MyUtil.MyCallCallback(self,isIncomingCall=True))
 
         self.call=call
         self.taskBar.on_incoming_call(True)
@@ -133,8 +127,11 @@ class MainWindow(wx.Frame):
         self.callUserText=text=wx.TextCtrl(topPanel, -1, self.configDao.GetLastCallNum(),style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.onCallUserTextEnter, text)
         box.Add(text, 1, wx.ALIGN_CENTER)
-        self.callBtn =btn=wx.Button(topPanel, -1, _('call'))
-        self.Bind(wx.EVT_BUTTON, self.onCallBtnClick, btn)
+        self.videoCallBtn =btn=wx.Button(topPanel, -1, _('call'))
+        self.Bind(wx.EVT_BUTTON, self.onVideoCallBtnClick, btn)
+        box.Add(btn, 0,wx.ALIGN_CENTER)
+        self.voiceCallBtn = btn = wx.Button(topPanel, -1, _('no video call'))
+        self.Bind(wx.EVT_BUTTON, self.onVoiceCallBtnClick, btn)
         box.Add(btn, 0,wx.ALIGN_CENTER)
 
         topPanel.SetSizer(box)
@@ -153,7 +150,7 @@ class MainWindow(wx.Frame):
         self.taskBar=MyWidget.TaskBarIcon(self)
 
     def __startSipLib(self):
-        isSucess = True
+        isSuccess = True
         global lib
         if lib:
             self.__stopSipLib()
@@ -161,27 +158,28 @@ class MainWindow(wx.Frame):
         lib =  pj.Lib()
 
         try:
+        # if True:
             dao = self.configDao;
             mediaConfig=MediaConfig()
             mediaConfig.enable_ice = MyUtil.db_str2bool(dao.GetIsUseIce())
-            mediaConfig.enable_turn =MyUtil.db_str2bool(dao.GetIsUseTurn())
-            mediaConfig.turn_server =dao.GetTurnServer()
-
+            # mediaConfig.enable_turn =MyUtil.db_str2bool(dao.GetIsUseTurn())
+            # mediaConfig.turn_server =dao.GetTurnServer()
             uaConfig=UAConfig()
             if (MyUtil.db_str2bool(dao.GetIsUseStun())):
-                uaConfig.stun_domain = dao.GetStunServer()
-                uaConfig.stun_host = dao.GetStunServer()
+                uaConfig.stun_srv = [str(dao.GetStunServer())]
 
             lib.init(ua_cfg = uaConfig,log_cfg = pj.LogConfig(level=1, callback=self.log_cb), media_cfg=mediaConfig)
             lib.create_transport(pj.TransportType.UDP, pj.TransportConfig(0))
             lib.start()
         except:
-            isSucess=False
+            isSuccess=False
             self.show_err_msg()
 
-        self.reRegister()
+        if isSuccess:
+            isSuccess=self.reRegister()
 
-        return isSucess
+
+        return isSuccess
 
     def __stopSipLib(self):
         global lib
@@ -196,31 +194,42 @@ class MainWindow(wx.Frame):
             lib = None
 
     def __init__(self, parent, title):
+        startDlg = MyWidget.StartUpProgressBar()
+
         ## dao init
+        startDlg.update(5,_("initial database"))
         self.userDao = TbUser()
         self.configDao =TbConfig()
 
+        startDlg.update(15,_("initial parent window"))
         wx.Frame.__init__(self, parent, title=title,size=(int(self.configDao.GetWinW()),int(self.configDao.GetWinH())),pos=(int(self.configDao.GetWinX()),int(self.configDao.GetWinY())))
-        self.__setUi()
 
-        ### lib init
+        startDlg.update(35,_("initial UI"))
+        self.__setUi()
+        ### lib init this may delay several seconds
+        startDlg.update(65,_("initial sip lib"))
         self.__startSipLib()
 
         if (self.userDao.getCount() == 0):
+            startDlg.update(100)
             self.doSipConfigMenuItem(None)
-        else:
-            self.reRegister()
 
+        startDlg.update(100)
+        startDlg.Destroy()
         self.Show(True)
         self._previousSize = self.GetSize()
         self._previousPos = self.GetPosition()
 
     def onCallUserTextEnter(self,event):
         if (self.callUserText.GetValue()):
-            self.onCallBtnClick(event)
+            self.onVideoCallBtnClick(None)
         event.Skip()
 
-    def onCallBtnClick(self,e):
+    def onVideoCallBtnClick(self,e):
+        self.__onCallBtnClick(1)
+    def onVoiceCallBtnClick(self,e):
+        self.__onCallBtnClick(0)
+    def __onCallBtnClick(self,vidCnt=1):
         if not self.call and self.acc:
             user = self.callUserText.GetValue().strip()
             uri="sip:"+user+"@"+self.tbUser.domain
@@ -229,7 +238,7 @@ class MainWindow(wx.Frame):
                 return
 
             try:
-                self.call = self.acc.make_call(str(uri),cb=MyUtil.MyCallCallback(self))
+                self.call = self.acc.make_call(str(uri),cb=MyUtil.MyCallCallback(self),vid_cnt=vidCnt)
                 ### setup notebook's ui
                 self.notebookPanel.call_on_state(self.call,0,None)
                 self.configDao.SetLastCallNum(user)
@@ -244,6 +253,8 @@ class MainWindow(wx.Frame):
 
         dlg.CenterOnScreen()
 
+        if not self.IsShown():
+            dlg.Raise()
         # this does not return until the dialog is closed.
         val = dlg.ShowModal()
 
@@ -309,6 +320,7 @@ class MainWindow(wx.Frame):
                 self.acc.set_callback(acc_cb)
                 acc_cb.wait()
                 self.SetTitle(_("on registing")+"...")
+                self.taskBar.startRegistingBlink()
             except:
                 isSucess=False
                 self.show_err_msg()
@@ -345,10 +357,10 @@ class MainWindow(wx.Frame):
         if (isNeedUpdate):
             self.configDao.commitSession()
 
-    def log_cb(self,level, str, len):
+    def log_cb(self,level, str2, len):
         if (level==1):
-            self.lastErrorInfo = str
-        print str,
+            self.lastErrorInfo += str(str2)
+        print str2
 
     def show_err_msg(self):
         dlg = wx.MessageDialog(self,MyUtil.ProcessErrMsg(self.lastErrorInfo) ,
@@ -356,10 +368,12 @@ class MainWindow(wx.Frame):
                                wx.OK | wx.ICON_ERROR
                                #wx.YES_NO | wx.NO_DEFAULT | wx.CANCEL | wx.ICON_INFORMATION
                                )
+        self.lastErrorInfo =""
         dlg.ShowModal()
         dlg.Destroy()
 
 
 app = wx.App()
 mainWindow = MainWindow(None, _("no account"))
+mainWindow.Raise()
 app.MainLoop()

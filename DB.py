@@ -92,6 +92,10 @@ class TbConfig(Base):
       return session.query(TbConfig).filter_by(name='turn_server').one().val
     def SetTurnServer(self,val):
       session.query(TbConfig).filter_by(name='turn_server').update({TbConfig.val:str(val)})
+    def GetVersion(self):
+        return session.query(TbConfig).filter_by(name='version').one().val
+    def SetVersion(self,val):
+        session.query(TbConfig).filter_by(name='version').update({TbConfig.val:str(val)})
 
 def InitalData():
     if (session.query(TbConfig).count() ==0):
@@ -115,6 +119,7 @@ def InitalData():
             #     setMethodImg= "  session.query(TbConfig).filter_by(name='"+name+"').update({TbConfig.val:str(val)})"
             #     print setMethod
             #     print setMethodImg
+            TbConfig(name='version',val='1.0.0'),
 
             TbConfig(name='win_x',val='100'),
             TbConfig(name='win_y',val='100'),
@@ -122,14 +127,15 @@ def InitalData():
             TbConfig(name='win_h',val='420'),
             TbConfig(name='last_call_num',val=''),
 
-            TbConfig(name='is_use_ice',val='0'),
-            TbConfig(name='is_use_stun',val='0'),
+            TbConfig(name='is_use_ice',val='1'),
+            TbConfig(name='is_use_stun',val='1'),
             TbConfig(name='is_use_turn',val='0'),
-            TbConfig(name='stun_server',val='stun.pjsip.org '),
-            TbConfig(name='turn_server',val='advx9900.xicp.net'),
+            TbConfig(name='stun_server',val='stun.pjsip.org'),
+            TbConfig(name='turn_server',val='0.0.0.0'),
         ])
         session.commit()
-
+    # else:
+    #     # update database
 Base.metadata.create_all(engine)
 InitalData()
 # class DB():

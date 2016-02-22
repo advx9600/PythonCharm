@@ -31,6 +31,9 @@ msgstr "sip"
 msgid "call"
 msgstr "打电话"
 
+msgid "no video call"
+msgstr "无视频电话"
+
 msgid "on registing"
 msgstr "正在注册中"
 
@@ -145,9 +148,23 @@ msgstr "stun服务器"
 msgid "turn server"
 msgstr "turn服务器"
 
+msgid "Start progress"
+msgstr "启动进度"
+
+msgid "initial database"
+msgstr "初始化数据库"
+
+msgid "initial parent window"
+msgstr "初始化父窗口"
+
+msgid "initial UI"
+msgstr "初始化UI"
+
+msgid "initial sip lib"
+msgstr "初始化SIP库"
 # err messages
-msgid "please insert mic and reboot this application"
-msgstr "请插入麦克风,并且重新启动该程序"
+msgid "please insert mic and check sound play device and reboot this application"
+msgstr "请插入麦克风,检测放音设备是否正常,并且重新启动该程序"
 
 msgid "sip account config failed"
 msgstr "sip帐户配置错误"

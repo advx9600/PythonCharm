@@ -23,7 +23,7 @@ def ProcessErrMsg(msg):
     msgAdd=""
     if (msg):
         if "[status=420006]" in str(msg):
-            msgAdd=_("please insert mic and reboot this application")+"\n"
+            msgAdd=_("please insert mic and check sound play device and reboot this application")+"\n"
         elif "[status=171039]" in str(msg):
             msgAdd=_("sip account config failed")+"\n"
 
@@ -107,9 +107,11 @@ class OnMediaStateCallEvent(wx.PyCommandEvent):
 class MyCallCallback(pj.CallCallback):
     win=None
     isVideo=False
-    def __init__(self, win,call=None):
+    isInComingCall=False
+    def __init__(self, win,call=None,isIncomingCall=False):
         pj.CallCallback.__init__(self, call)
         self.win = win
+        self.isInComingCall=isIncomingCall
     # Notification when call state has changed
     def on_state(self):
         # print datetime.datetime.now(),
@@ -118,8 +120,11 @@ class MyCallCallback(pj.CallCallback):
         print "last code =", self.call.info().last_code,
         print "(" + self.call.info().last_reason + ")"
 
-        # code = int(self.call.info().last_code)
+        code = int(self.call.info().last_code)
         # state = self.call.info().state_text
+
+        if (self.isInComingCall and code == 180):
+            return
 
         ### because this event is very slow,so do it directly
         # if (code == 200 and state=="DISCONNCTD" and self.isVideo):
