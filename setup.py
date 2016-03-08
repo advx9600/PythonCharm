@@ -8,7 +8,13 @@ from distutils.core import setup
 #setup(console=['VideoForm.py'])
 
 setup(
-    windows=[{"script" : "VideoForm.py"}],
+    windows=[
+        {
+            "script" : "VideoForm.py",
+            "icon_resources" : [(0,"logo.ico")]
+        }
+    ],
+    # console = ["VideoForm.py"],
     data_files=[
                     ("img",glob.glob("img\\*.png")),
                     ("sound",glob.glob("sound\\*.wav")),

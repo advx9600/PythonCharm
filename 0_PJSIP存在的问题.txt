@@ -1,12 +1,10 @@
-注册时间	expire time 与linphone对比
 声音与linphone相比有差距（有断断续续现象）
-stun	ice功能
 网络改变 重新注册
 手机Mobile data状态时只能传输图片
 当注册一个错误domain后,重新注册时时间太长
 lib.modify_account 不会重新调用on_reg_state
 pop dialog显示位置
-注册只允许一个帐号,一台电脑
+注册只允许一个帐号,一台电脑,单一登陆
 python程序更新问题
 服务器配置呼叫结束时间
 注册失败时点击call按钮的处理,服务器设置对方不可达,cancel之后,应该马上返回603
@@ -15,3 +13,4 @@ message问题,多个tab
 注册成功后,一直成功
 启动时间有些慢
 一定要ICE,否则Call出问题
+Video按照比例显示

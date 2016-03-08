@@ -56,11 +56,11 @@ class MainWindow(wx.Frame):
             self.taskBar.setRegisted(False)
 
     def on_incoming_call(self,evt):
+        call = evt.GetValue()
         if (self.call):
-                self.call.answer(486)
+                call.answer(486)
                 return
 
-        call = evt.GetValue()
         call.answer(180)
         call.set_callback(MyUtil.MyCallCallback(self,isIncomingCall=True))
 
@@ -216,6 +216,7 @@ class MainWindow(wx.Frame):
 
         startDlg.update(100)
         startDlg.Destroy()
+        self.Raise()
         self.Show(True)
         self._previousSize = self.GetSize()
         self._previousPos = self.GetPosition()
@@ -375,5 +376,4 @@ class MainWindow(wx.Frame):
 
 app = wx.App()
 mainWindow = MainWindow(None, _("no account"))
-mainWindow.Raise()
 app.MainLoop()

@@ -162,6 +162,9 @@ msgstr "初始化UI"
 
 msgid "initial sip lib"
 msgstr "初始化SIP库"
+
+msgid "Incoming call"
+msgstr "来电"
 # err messages
 msgid "please insert mic and check sound play device and reboot this application"
 msgstr "请插入麦克风,检测放音设备是否正常,并且重新启动该程序"

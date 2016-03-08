@@ -221,11 +221,7 @@ class MainNoteBookPanel(wx.Notebook):
         self._call =call
         if (code == 0 and not self._callWin):
             # self._callWin=win = self.makeColorPanel(wx.WHITE)
-            self._callWin =win= wx.Panel(self)
-            self.__setCallWin(win)
-            self.AddPage(win, _("Calling"))
-            self.SetSelection(1)
-
+            self.__addCallWin(False)
         # if not self._callWin:
         #     return
         ### http://www.51testing.com/html/90/360490-834635.html
@@ -269,13 +265,30 @@ class MainNoteBookPanel(wx.Notebook):
             if self._soundPlayer:
                 self._soundPlayer.Stop()
                 self._soundPlayer = None
+
+    ### add call win  for call and incoming call
+    def __addCallWin(self,isComingCall=True,text=""):
+        self._callWin =win= wx.Panel(self)
+        if isComingCall:
+            self.__setComingCallWin(win)
+            text += " "+_("Incoming call")
+        else:
+            self.__setCallWin(win)
+            text = _("Calling")
+        self.AddPage(win, text,select=True)
     #### call by  thread
     def __delayCloseWin(self,sleep=0):
-        if (sleep >0):
-            time.sleep(sleep)
-        self.DeletePage(1)
+        count=self.GetPageCount()
+        num =0;
+        for i in range(0,count):
+            if (self.GetPage(i) == self._callWin):
+                num =i
+                break
         self._callWin=None
         self._videoWinId = None
+        if (sleep >0):
+            time.sleep(sleep)
+        self.DeletePage(num)
 
     def on_media_sate(self,vid):
         if vid:
@@ -314,11 +327,7 @@ class MainNoteBookPanel(wx.Notebook):
         self._soundPlayer = wx.Sound("sound/oldphone-mono.wav")
         self._soundPlayer.Play(wx.SOUND_ASYNC | wx.SOUND_LOOP)
 
-        self._callWin=win= wx.Panel(self)
-        self.__setComingCallWin(win)
-        self.AddPage(win, _("Calling"))
-        self.SetSelection(1)
-
+        self.__addCallWin(True,text=call.info().remote_uri)
     def makeColorPanel(self, color):
         p = wx.Panel(self, -1)
         win = ColoredPanel(p, color)
