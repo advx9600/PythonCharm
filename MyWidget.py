@@ -278,17 +278,17 @@ class MainNoteBookPanel(wx.Notebook):
         self.AddPage(win, text,select=True)
     #### call by  thread
     def __delayCloseWin(self,sleep=0):
-        count=self.GetPageCount()
-        num =0;
-        for i in range(0,count):
-            if (self.GetPage(i) == self._callWin):
-                num =i
-                break
+        win = self._callWin
         self._callWin=None
         self._videoWinId = None
         if (sleep >0):
             time.sleep(sleep)
-        self.DeletePage(num)
+
+        count=self.GetPageCount()
+        for i in range(0,count):
+            if (self.GetPage(i) == win):
+                self.DeletePage(i)
+                break
 
     def on_media_sate(self,vid):
         if vid:
