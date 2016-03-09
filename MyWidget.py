@@ -194,6 +194,7 @@ class MainNoteBookPanel(wx.Notebook):
         except:
             self._mainWindow.show_err_msg()
         self.hangUpBtn.Enable(False)
+        ### this will cause many other problem
         self._mainWindow.real_on_state(603,"immediately")
 
     def answer(self,e):

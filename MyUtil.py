@@ -123,13 +123,15 @@ class MyCallCallback(pj.CallCallback):
         code = int(self.call.info().last_code)
         # state = self.call.info().state_text
 
-        if (self.isInComingCall and code == 180):
-            return
+        if (self.isInComingCall):
+            if (code in (180,)):
+                return
 
         ### because this event is very slow,so do it directly
         # if (code == 200 and state=="DISCONNCTD" and self.isVideo):
         #     self.win.real_on_state(code,state)
         # else:
+        #### can't send call ,may be different thread
         evt = OnStateCallEvent(myOnStateEvent,-1,self.call.info())
         wx.PostEvent(self.win, evt)
 

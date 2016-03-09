@@ -3,6 +3,7 @@ __author__ = 'Administrator'
 
 import  wx
 import pjsua as pj
+
 import gettext
 import  MyWidget
 import MyUtil
@@ -44,6 +45,8 @@ class MainWindow(wx.Frame):
 
     _previousSize=None
     _previousPos=None
+    ### for force disconnected,but actually not disconnected
+    _listCallInfo=[]
 
     def on_reg_state(self,evt):
         reg_status= evt.GetValue()
@@ -55,11 +58,38 @@ class MainWindow(wx.Frame):
             self.SetTitle(_("register failed")+":"+str(reg_status))
             self.taskBar.setRegisted(False)
 
+    def make_call(self,vidCnt=1):
+        if len(self._listCallInfo) > 0:
+            user = self.callUserText.GetValue().strip()
+            uri="sip:"+user+"@"+self.tbUser.domain
+            for getInfo in self._listCallInfo:
+                if getInfo.remote_uri == uri:
+                    self.showMessage(_("call_already_exist_please_wait"))
+                    return
+
+        if not self.call and self.acc:
+            user = self.callUserText.GetValue().strip()
+            uri="sip:"+user+"@"+self.tbUser.domain
+            if self.tbUser.name == user:
+                self.showMessage(_("can't call myself"))
+                return
+
+            try:
+                self.call = self.acc.make_call(str(uri),cb=MyUtil.MyCallCallback(self),vid_cnt=vidCnt)
+                self._listCallInfo.append(self.call.info())
+                ### setup notebook's ui
+                self.notebookPanel.call_on_state(self.call,0,None)
+                self.configDao.SetLastCallNum(user)
+                self.configDao.commitSession()
+            except :
+                self.show_err_msg()
+
     def on_incoming_call(self,evt):
         call = evt.GetValue()
-        if (self.call):
-                call.answer(486)
-                return
+
+        if (self.call) or len(self._listCallInfo) > 0:
+            call.answer(486)
+            return
 
         call.answer(180)
         call.set_callback(MyUtil.MyCallCallback(self,isIncomingCall=True))
@@ -69,9 +99,15 @@ class MainWindow(wx.Frame):
         self.notebookPanel.on_incoming_call(call)
 
     def on_state(self,evt):
+        # call = evt.GetValue()
+        # info = call.info()
         info = evt.GetValue()
         code = int(info.last_code)
         state = info.state_text
+        if (state == "DISCONNCTD"):
+            for getInfo in self._listCallInfo:
+                if getInfo.sip_call_id == info.sip_call_id:
+                    self._listCallInfo.remove(getInfo)
         self.real_on_state(code,state)
 
     def real_on_state(self,code,state):
@@ -79,9 +115,8 @@ class MainWindow(wx.Frame):
             return
         ### http://www.51testing.com/html/90/360490-834635.html
         ### 404 not found,408 Request Timeout,480 temporary unavailable,486 Busy,487 500 Internal Server Err,timeout,603 decline
-        if code in (404,408,480,486,487,500,603) or (code==200 and state=="DISCONNCTD"):
-            # mainWindow.call.set_callback(None)
-            self.call.attach_to_id(-1)
+        if state=="DISCONNCTD" or state == "immediately":
+            # self.call.attach_to_id(-1)
             self.call = None
         ### notebookPanel UI set
         self.notebookPanel.call_on_state(self.call,code,state)
@@ -156,6 +191,7 @@ class MainWindow(wx.Frame):
             self.__stopSipLib()
 
         lib =  pj.Lib()
+        self._listCallInfo=[]
 
         try:
         # if True:
@@ -231,21 +267,7 @@ class MainWindow(wx.Frame):
     def onVoiceCallBtnClick(self,e):
         self.__onCallBtnClick(0)
     def __onCallBtnClick(self,vidCnt=1):
-        if not self.call and self.acc:
-            user = self.callUserText.GetValue().strip()
-            uri="sip:"+user+"@"+self.tbUser.domain
-            if self.tbUser.name == user:
-                self.showMessage(_("can't call myself"))
-                return
-
-            try:
-                self.call = self.acc.make_call(str(uri),cb=MyUtil.MyCallCallback(self),vid_cnt=vidCnt)
-                ### setup notebook's ui
-                self.notebookPanel.call_on_state(self.call,0,None)
-                self.configDao.SetLastCallNum(user)
-                self.configDao.commitSession()
-            except :
-                self.show_err_msg()
+        self.make_call(vidCnt)
 
     def doSipConfigMenuItem(self,e):
         dlg = MyWidget.SipConfigDialog(self, -1, _("sip config window"))

@@ -14,3 +14,5 @@ message问题,多个tab
 启动时间有些慢
 一定要ICE,否则Call出问题
 Video按照比例显示
+有时InComingCall时,打断不会发出信息(强制断开,Call一次,再次Call则会这样)
+服务器应该增加是否在线具体的判断
