@@ -24,6 +24,17 @@ msgstr "Sip配置(&S)"
 msgid "&Nat Traversal"
 msgstr "Net穿越(&N)"
 
+msgid "&Other Config"
+msgstr "其它配置(&O)"
+
+msgid "Debug level(1-5)"
+msgstr "调试级别(1-5)"
+
+msgid "Sip send port"
+msgstr "Sip发送端口号"
+
+msgid "other config"
+msgstr "其它配置"
 
 msgid "sip"
 msgstr "sip"

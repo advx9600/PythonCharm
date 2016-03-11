@@ -16,3 +16,5 @@ message问题,多个tab
 Video按照比例显示
 有时InComingCall时,打断不会发出信息(强制断开,Call一次,再次Call则会这样)
 服务器应该增加是否在线具体的判断
+呼叫对方挂掉后,tab未关闭
+服务器需要用Mysql

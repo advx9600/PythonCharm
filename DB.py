@@ -96,6 +96,15 @@ class TbConfig(Base):
         return session.query(TbConfig).filter_by(name='version').one().val
     def SetVersion(self,val):
         session.query(TbConfig).filter_by(name='version').update({TbConfig.val:str(val)})
+    def GetSipSendPort(self):
+      return session.query(TbConfig).filter_by(name='sip_send_port').one().val
+    def SetSipSendPort(self,val):
+      session.query(TbConfig).filter_by(name='sip_send_port').update({TbConfig.val:str(val)})
+    def GetLogLevel(self):
+      return session.query(TbConfig).filter_by(name='log_level').one().val
+    def SetLogLevel(self,val):
+      session.query(TbConfig).filter_by(name='log_level').update({TbConfig.val:str(val)})
+
 
 def InitalData():
     if (session.query(TbConfig).count() ==0):
@@ -132,6 +141,9 @@ def InitalData():
             TbConfig(name='is_use_turn',val='0'),
             TbConfig(name='stun_server',val='stun.pjsip.org'),
             TbConfig(name='turn_server',val='0.0.0.0'),
+
+            TbConfig(name='sip_send_port',val='6000'),
+            TbConfig(name='log_level',val='1'),
         ])
         session.commit()
     # else:

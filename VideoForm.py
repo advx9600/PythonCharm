@@ -95,6 +95,7 @@ class MainWindow(wx.Frame):
         call.set_callback(MyUtil.MyCallCallback(self,isIncomingCall=True))
 
         self.call=call
+        self._listCallInfo.append(self.call.info())
         self.taskBar.on_incoming_call(True)
         self.notebookPanel.on_incoming_call(call)
 
@@ -142,9 +143,11 @@ class MainWindow(wx.Frame):
 
         sipConfigMenuItem = optionmenu.Append(101,_("&Sip Config"),"")
         natTravelMenuItem = optionmenu.Append(102,_("&Nat Traversal"),"")
+        otherConfigMenuItem = optionmenu.Append(103,_("&Other Config"),"")
 
         self.Bind(wx.EVT_MENU, self.doSipConfigMenuItem, sipConfigMenuItem)
         self.Bind(wx.EVT_MENU, self.doNatTravelConfig, natTravelMenuItem)
+        self.Bind(wx.EVT_MENU, self.doOtherConfig, otherConfigMenuItem)
 
         menuBar = wx.MenuBar()
         menuBar.Append(optionmenu,(_("&Option")))
@@ -204,8 +207,8 @@ class MainWindow(wx.Frame):
             if (MyUtil.db_str2bool(dao.GetIsUseStun())):
                 uaConfig.stun_srv = [str(dao.GetStunServer())]
 
-            lib.init(ua_cfg = uaConfig,log_cfg = pj.LogConfig(level=1, callback=self.log_cb), media_cfg=mediaConfig)
-            lib.create_transport(pj.TransportType.UDP, pj.TransportConfig(0))
+            lib.init(ua_cfg = uaConfig,log_cfg = pj.LogConfig(level=int(dao.GetLogLevel()), callback=self.log_cb), media_cfg=mediaConfig)
+            lib.create_transport(pj.TransportType.UDP, pj.TransportConfig(int(dao.GetSipSendPort())))
             lib.start()
         except:
             isSuccess=False
@@ -316,6 +319,25 @@ class MainWindow(wx.Frame):
             dao.SetStunServer(dlg.stunServer.GetValue())
             dao.SetTurnServer(dlg.turnServer.GetValue())
 
+            if self.__startSipLib():
+                dao.commitSession()
+            else:
+                dao.rollbackSession()
+
+        dlg.Destroy()
+
+    def doOtherConfig(self,e):
+        dlg = MyWidget.OtherConfigDialog(self, -1, _("other config"))
+        dao = self.configDao
+        dlg.setValue(dao.GetSipSendPort(),dao.GetLogLevel())
+
+        # this does not return until the dialog is closed.
+        dlg.CenterOnScreen()
+        val = dlg.ShowModal()
+
+        if val == wx.ID_OK:
+            dao.SetSipSendPort(dlg.sipPort.GetValue())
+            dao.SetLogLevel(dlg.logLevel.GetValue())
             if self.__startSipLib():
                 dao.commitSession()
             else:

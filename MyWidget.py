@@ -451,3 +451,34 @@ class NetTraversalConfigDialog(sc.SizedDialog):
 
         self.stunServer.SetValue(stunServer)
         self.turnServer.SetValue(turnServer)
+
+class OtherConfigDialog(sc.SizedDialog):
+    sipPort=None
+    logLevel=None
+
+    def __init__(self, parent, id,title):
+        sc.SizedDialog.__init__(self, None, -1, title,
+                        style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+
+        pane = self.GetContentsPane()
+        pane.SetSizerType("form")
+
+        #row 1
+        wx.StaticText(pane, -1,  _("Sip send port"))
+        self.sipPort = wx.TextCtrl(pane, -1, "", size=(200,-1))
+
+        #row 2
+        wx.StaticText(pane, -1,  _("Debug level(1-5)"))
+        self.logLevel = wx.TextCtrl(pane, -1, "", size=(200,-1))
+        # button
+        self.SetButtonSizer(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL))
+
+        # a little trick to make sure that you can't resize the dialog to
+        # less screen space than the controls need
+        self.Fit()
+        self.SetMinSize(self.GetSize())
+
+
+    def setValue(self,sipSendPort ="0",logLevel ="1"):
+        self.sipPort.SetValue(sipSendPort)
+        self.logLevel.SetValue(logLevel)
