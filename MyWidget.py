@@ -239,6 +239,8 @@ class MainNoteBookPanel(wx.Notebook):
                 text=_("Busy here")
             elif code == 487:
                 text=_("Request terminated")
+            elif code == 488:
+                text="Not Acceptable";
             elif code == 500:
                 text=_("Internal Server Error")
             elif code == 603:
@@ -437,9 +439,6 @@ class NetTraversalConfigDialog(sc.SizedDialog):
         # less screen space than the controls need
         self.Fit()
         self.SetMinSize(self.GetSize())
-
-        self.useTurn.Enabled=False
-        self.turnServer.Enabled=False
 
     def setValue(self,isUseIce,isUseStun,stunServer,isUseTurn,turnServer):
         if MyUtil.db_str2bool(isUseIce):

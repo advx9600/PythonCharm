@@ -26,9 +26,13 @@ def ProcessErrMsg(msg):
             msgAdd=_("please insert mic and check sound play device and reboot this application")+"\n"
         elif "[status=171039]" in str(msg):
             msgAdd=_("sip account config failed")+"\n"
-
+        elif "[status=370004]" in str(msg):
+            msgAdd=_("stun transaction has timeout")+"\n"
     msgAdd += str(msg)
     return  msgAdd
+
+def saveErrorLog(msg):
+    pass
 
 myRegStateEvent = wx.NewEventType()
 EVT_ON_REG_STATE = wx.PyEventBinder(myRegStateEvent, 1)

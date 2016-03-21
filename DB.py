@@ -52,56 +52,56 @@ class TbConfig(Base):
         session.rollback()
 
     ### those method are auto generated
+    def GetVersion(self):
+        return str(session.query(TbConfig).filter_by(name='version').one().val)
+    def SetVersion(self,val):
+      session.query(TbConfig).filter_by(name='version').update({TbConfig.val:str(val)})
     def GetWinX(self):
-      return session.query(TbConfig).filter_by(name='win_x').one().val
+      return str(session.query(TbConfig).filter_by(name='win_x').one().val)
     def SetWinX(self,val):
       session.query(TbConfig).filter_by(name='win_x').update({TbConfig.val:str(val)})
     def GetWinY(self):
-      return session.query(TbConfig).filter_by(name='win_y').one().val
+      return str(session.query(TbConfig).filter_by(name='win_y').one().val)
     def SetWinY(self,val):
       session.query(TbConfig).filter_by(name='win_y').update({TbConfig.val:str(val)})
-    def GetWinH(self):
-      return session.query(TbConfig).filter_by(name='win_h').one().val
-    def SetWinH(self,val):
-      session.query(TbConfig).filter_by(name='win_h').update({TbConfig.val:str(val)})
     def GetWinW(self):
-      return session.query(TbConfig).filter_by(name='win_w').one().val
+      return str(session.query(TbConfig).filter_by(name='win_w').one().val)
     def SetWinW(self,val):
       session.query(TbConfig).filter_by(name='win_w').update({TbConfig.val:str(val)})
+    def GetWinH(self):
+      return str(session.query(TbConfig).filter_by(name='win_h').one().val)
+    def SetWinH(self,val):
+      session.query(TbConfig).filter_by(name='win_h').update({TbConfig.val:str(val)})
     def GetLastCallNum(self):
-      return session.query(TbConfig).filter_by(name='last_call_num').one().val
+      return str(session.query(TbConfig).filter_by(name='last_call_num').one().val)
     def SetLastCallNum(self,val):
       session.query(TbConfig).filter_by(name='last_call_num').update({TbConfig.val:str(val)})
     def GetIsUseIce(self):
-      return session.query(TbConfig).filter_by(name='is_use_ice').one().val
+      return str(session.query(TbConfig).filter_by(name='is_use_ice').one().val)
     def SetIsUseIce(self,val):
       session.query(TbConfig).filter_by(name='is_use_ice').update({TbConfig.val:str(val)})
     def GetIsUseStun(self):
-      return session.query(TbConfig).filter_by(name='is_use_stun').one().val
+      return str(session.query(TbConfig).filter_by(name='is_use_stun').one().val)
     def SetIsUseStun(self,val):
       session.query(TbConfig).filter_by(name='is_use_stun').update({TbConfig.val:str(val)})
     def GetIsUseTurn(self):
-      return session.query(TbConfig).filter_by(name='is_use_turn').one().val
+      return str(session.query(TbConfig).filter_by(name='is_use_turn').one().val)
     def SetIsUseTurn(self,val):
       session.query(TbConfig).filter_by(name='is_use_turn').update({TbConfig.val:str(val)})
     def GetStunServer(self):
-      return session.query(TbConfig).filter_by(name='stun_server').one().val
+      return str(session.query(TbConfig).filter_by(name='stun_server').one().val)
     def SetStunServer(self,val):
       session.query(TbConfig).filter_by(name='stun_server').update({TbConfig.val:str(val)})
     def GetTurnServer(self):
-      return session.query(TbConfig).filter_by(name='turn_server').one().val
+      return str(session.query(TbConfig).filter_by(name='turn_server').one().val)
     def SetTurnServer(self,val):
       session.query(TbConfig).filter_by(name='turn_server').update({TbConfig.val:str(val)})
-    def GetVersion(self):
-        return session.query(TbConfig).filter_by(name='version').one().val
-    def SetVersion(self,val):
-        session.query(TbConfig).filter_by(name='version').update({TbConfig.val:str(val)})
     def GetSipSendPort(self):
-      return session.query(TbConfig).filter_by(name='sip_send_port').one().val
+      return str(session.query(TbConfig).filter_by(name='sip_send_port').one().val)
     def SetSipSendPort(self,val):
       session.query(TbConfig).filter_by(name='sip_send_port').update({TbConfig.val:str(val)})
     def GetLogLevel(self):
-      return session.query(TbConfig).filter_by(name='log_level').one().val
+      return str(session.query(TbConfig).filter_by(name='log_level').one().val)
     def SetLogLevel(self,val):
       session.query(TbConfig).filter_by(name='log_level').update({TbConfig.val:str(val)})
 
@@ -120,7 +120,7 @@ def InitalData():
             #         firstUpper += split.capitalize()
             #
             #     getMethod="def Get"+firstUpper+"(self):"
-            #     getMethodImg="  return session.query(TbConfig).filter_by(name='"+name+"').one().val"
+            #     getMethodImg="  return str(session.query(TbConfig).filter_by(name='"+name+"').one().val)"
             #     print getMethod
             #     print getMethodImg
             #
@@ -138,9 +138,9 @@ def InitalData():
 
             TbConfig(name='is_use_ice',val='1'),
             TbConfig(name='is_use_stun',val='1'),
-            TbConfig(name='is_use_turn',val='0'),
+            TbConfig(name='is_use_turn',val='1'),
             TbConfig(name='stun_server',val='stun.pjsip.org'),
-            TbConfig(name='turn_server',val='0.0.0.0'),
+            TbConfig(name='turn_server',val='120.24.77.212:3478'),
 
             TbConfig(name='sip_send_port',val='6000'),
             TbConfig(name='log_level',val='1'),

@@ -183,5 +183,8 @@ msgstr "请插入麦克风,检测放音设备是否正常,并且重新启动该程序"
 msgid "sip account config failed"
 msgstr "sip帐户配置错误"
 
+msgid "stun transaction has timeout"
+msgstr "Stun服务器传输失败,请重启,或稍候再拔"
+
 msgid "call_already_exist_please_wait"
 msgstr "该呼叫未完全结束,请稍候再拔"

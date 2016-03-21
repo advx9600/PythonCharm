@@ -201,8 +201,10 @@ class MainWindow(wx.Frame):
             dao = self.configDao;
             mediaConfig=MediaConfig()
             mediaConfig.enable_ice = MyUtil.db_str2bool(dao.GetIsUseIce())
-            # mediaConfig.enable_turn =MyUtil.db_str2bool(dao.GetIsUseTurn())
-            # mediaConfig.turn_server =dao.GetTurnServer()
+            mediaConfig.enable_turn =MyUtil.db_str2bool(dao.GetIsUseTurn())
+            if mediaConfig.enable_turn:
+                mediaConfig.turn_server = str(dao.GetTurnServer())
+
             uaConfig=UAConfig()
             if (MyUtil.db_str2bool(dao.GetIsUseStun())):
                 uaConfig.stun_srv = [str(dao.GetStunServer())]
@@ -404,7 +406,13 @@ class MainWindow(wx.Frame):
 
     def log_cb(self,level, str2, len):
         if (level==1):
+            MyUtil.saveErrorLog(str2)
             self.lastErrorInfo += str(str2)
+
+        ### this is the err can't be caught by the program
+        if (level ==1):
+            if "[status=370004]" in str2:
+                self.show_err_msg()
         print str2
 
     def show_err_msg(self):

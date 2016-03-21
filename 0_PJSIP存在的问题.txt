@@ -1,3 +1,4 @@
+电脑休眠等状态判断
 声音与linphone相比有差距（有断断续续现象）
 网络改变 重新注册
 手机Mobile data状态时只能传输图片
@@ -18,3 +19,9 @@ Video按照比例显示
 服务器应该增加是否在线具体的判断
 呼叫对方挂掉后,tab未关闭
 服务器需要用Mysql
+注册失败后,呼叫,然后重新注册
+10:35:43.442    pjsua_acc.c !....SIP registration error: Maximum number of stale
+ retries exceeded (PJSIP_EAUTHSTALECOUNT) [status=171111]
+
+ 15:30:32.210   pjsua_call.c !Error initializing media channel: STUN transaction
+has timed out (PJNATH_ESTUNTIMEDOUT) [status=370004]
